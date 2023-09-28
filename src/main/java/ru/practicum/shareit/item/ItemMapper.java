@@ -8,11 +8,14 @@ import ru.practicum.shareit.item.model.Item;
 */
 
 public class ItemMapper {
+    // Метод получает экземпляр Item и возвращает экземпляр ItemDto
     public static ItemDto toItemDto(Item item) {
         return new ItemDto(item.getId(), item.getName(), item.getDescription(), item.getAvailable(),
                 item.getRequest() != null ? item.getRequest() : null);
     }
 
+    // Метод получает экземпляр Item и соответствующий ему экземпляр ItemDto и возвращает обновленный экземпляр Item
+    // Метод используется для обновления данных экземпляра Item в соответствии с полученным из контроллера ItemDto
     public static Item toItem(ItemDto itemDto, Item item) {
         if (itemDto.getName() != null) {
             item.setName(itemDto.getName());

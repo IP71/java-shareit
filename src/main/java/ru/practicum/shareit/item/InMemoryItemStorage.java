@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /*
-Класс, имплементирующий интерфейс ItemStorage, и хранящий данные в оперативной памяти
+Класс, работающий с информацией о вещах и хранящий данные в оперативной памяти
 */
 
 @Slf4j
@@ -19,6 +19,7 @@ public class InMemoryItemStorage implements ItemStorage {
     private int id = 0;
     private final Map<Integer, Item> items = new HashMap<>();
 
+    // Метод создает новую вещь
     @Override
     public ItemDto create(Item item, int ownerId) {
         item.setId(++id);
@@ -28,6 +29,7 @@ public class InMemoryItemStorage implements ItemStorage {
         return ItemMapper.toItemDto(item);
     }
 
+    // Метод обновляет существующую вещь. Обновить вещь может только владелец
     @Override
     public ItemDto update(ItemDto itemDto, int ownerId) {
         if (!items.containsKey(itemDto.getId())) {
@@ -43,6 +45,7 @@ public class InMemoryItemStorage implements ItemStorage {
         return ItemMapper.toItemDto(items.get(itemDto.getId()));
     }
 
+    // Метод возвращает список всех вещей, созданных пользователем ownerId
     @Override
     public List<ItemDto> get(int ownerId) {
         return items.values().stream()
@@ -51,6 +54,7 @@ public class InMemoryItemStorage implements ItemStorage {
                 .collect(Collectors.toList());
     }
 
+    // Метод возвращает вещь по id
     @Override
     public ItemDto getItemById(int id) {
         if (!items.containsKey(id)) {
@@ -60,6 +64,7 @@ public class InMemoryItemStorage implements ItemStorage {
         return ItemMapper.toItemDto(items.get(id));
     }
 
+    // Метод возвращает список найденных вещей по поисковому запросу text, полученному из параметра http запроса text
     @Override
     public List<ItemDto> search(String text) {
         List<Item> foundItems = new ArrayList<>();

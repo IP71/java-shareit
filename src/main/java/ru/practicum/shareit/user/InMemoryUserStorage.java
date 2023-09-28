@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /*
-Класс, имплементирующий интерфейс UserStorage, и хранящий данные в оперативной памяти
+Класс, работающий с информацией о пользователях и хранящий данные в оперативной памяти
 */
 
 @Slf4j
@@ -20,6 +20,7 @@ public class InMemoryUserStorage implements UserStorage {
     private final Map<Integer, User> users = new HashMap<>();
     private final Set<String> emails = new HashSet<>();
 
+    // Метод создает нового пользователя
     @Override
     public UserDto create(User user) {
         user.setId(++id);
@@ -29,6 +30,7 @@ public class InMemoryUserStorage implements UserStorage {
         return UserMapper.toUserDto(user);
     }
 
+    // Метод обновляет существующего пользователя
     @Override
     public UserDto update(UserDto userDto) {
         if (!users.containsKey(userDto.getId())) {
@@ -42,6 +44,7 @@ public class InMemoryUserStorage implements UserStorage {
         return UserMapper.toUserDto(users.get(userDto.getId()));
     }
 
+    // Метод возвращает информацию обо всех пользователях
     @Override
     public List<UserDto> get() {
         return users.values().stream()
@@ -49,6 +52,7 @@ public class InMemoryUserStorage implements UserStorage {
                 .collect(Collectors.toList());
     }
 
+    // Метод возвращает информацию о пользователе по id
     @Override
     public UserDto getUserById(int id) {
         if (!users.containsKey(id)) {
@@ -58,6 +62,7 @@ public class InMemoryUserStorage implements UserStorage {
         return UserMapper.toUserDto(users.get(id));
     }
 
+    // Метод удаляет пользователя по id
     @Override
     public void deleteUserById(int id) {
         if (!users.containsKey(id)) {
@@ -69,11 +74,13 @@ public class InMemoryUserStorage implements UserStorage {
         users.remove(id);
     }
 
+    // Метод возвращает true если пользователь с таким email существует
     @Override
     public boolean isExistEmail(String email) {
         return emails.contains(email);
     }
 
+    // Метод возвращает true если пользователь с таким id существует
     @Override
     public boolean isExistUser(int id) {
         return users.containsKey(id);

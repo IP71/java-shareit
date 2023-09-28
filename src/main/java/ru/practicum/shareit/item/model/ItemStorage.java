@@ -10,7 +10,7 @@ create(Item, int) создает новую вещь
 update(ItemDto, int) обновляет существующую вещь
 get(int) возвращает список вещей пользователя
 getItemById(int) возвращает вещь по id
-search(String) возвращает список подходящих по параметру поиска вещей
+search(String) возвращает список найденных вещей по поисковому запросу text, полученному из параметра http запроса text
 */
 
 public interface ItemStorage {

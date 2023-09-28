@@ -10,12 +10,7 @@ import javax.validation.Valid;
 import java.util.List;
 
 /*
-Контроллер для взаимодействия с пользователями.
-create создает нового пользователя при запросе POST /users
-update обновляет существующего пользователя при запросе PATCH /users/{id}
-get возвращает список всех пользователей при запросе GET /users
-getUserById возвращает пользователя по id при запросе GET /users/{id}
-deleteUserById удаляет пользователя по id при запросе DELETE users/{id}
+Контроллер для взаимодействия с пользователями
 */
 
 @Slf4j
@@ -28,6 +23,7 @@ public class UserController {
         this.userService = userService;
     }
 
+    // Метод создает нового пользователя при запросе POST /users
     @PostMapping
     public UserDto create(@Valid @RequestBody User user) {
         if (userService.isExistEmail(user.getEmail())) {
@@ -38,6 +34,7 @@ public class UserController {
         return userService.create(user);
     }
 
+    // Метод обновляет существующего пользователя при запросе PATCH /users/{id}
     @PatchMapping("/{id}")
     public UserDto update(@RequestBody UserDto userDto, @PathVariable int id) {
         userDto.setId(id);
@@ -50,16 +47,19 @@ public class UserController {
         return userService.update(userDto);
     }
 
+    // Метод возвращает список всех пользователей при запросе GET /users
     @GetMapping
     public List<UserDto> get() {
         return userService.get();
     }
 
+    // Метод возвращает пользователя по id при запросе GET /users/{id}
     @GetMapping("/{id}")
     public UserDto getUserById(@PathVariable int id) {
         return userService.getUserById(id);
     }
 
+    // Метод удаляет пользователя по id при запросе DELETE users/{id}
     @DeleteMapping("/{id}")
     public void deleteUserById(@PathVariable int id) {
         userService.deleteUserById(id);
