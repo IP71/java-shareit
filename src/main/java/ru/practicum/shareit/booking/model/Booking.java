@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 public class Booking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "booking_id")
+    @Column(name = "id")
     private Long id;
     @Column(name = "start_date")
     private LocalDateTime start;
@@ -27,7 +27,7 @@ public class Booking {
     @ToString.Exclude
     private Item item;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "booker_id")
     @ToString.Exclude
     private User booker;
     @Enumerated(EnumType.STRING)

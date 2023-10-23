@@ -12,7 +12,7 @@ import javax.validation.constraints.NotNull;
 public class Item {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "item_id")
+    @Column(name = "id")
     private Long id;
     @NotBlank
     @Column(name = "name")

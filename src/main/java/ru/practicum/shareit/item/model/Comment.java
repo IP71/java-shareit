@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "comment_id")
+    @Column(name = "id")
     private Long id;
     @NotBlank
     @Column(name = "text")
@@ -26,7 +26,7 @@ public class Comment {
     @ToString.Exclude
     private Item item;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "author_id")
     @ToString.Exclude
     private User author;
     @Column(name = "creation_date")
