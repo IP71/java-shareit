@@ -58,7 +58,7 @@ public class ItemServiceImpl implements ItemService {
         }
         checkIfOwnerExists(ownerId);
         Item item = itemRepository.findById(itemDto.getId()).get();
-        if (item.getOwner() != ownerId) {
+        if (!item.getOwner().equals(ownerId)) {
             throw new IllegalAccessExceptionItem(ownerId, item.getId());
         }
         item = ItemMapper.toItem(itemDto, item);
