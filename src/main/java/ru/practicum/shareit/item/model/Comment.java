@@ -16,16 +16,17 @@ import java.time.LocalDateTime;
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "comment_id")
     private Long id;
     @NotBlank
     @Column(name = "text")
     private String text;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "items_id")
+    @JoinColumn(name = "item_id")
     @ToString.Exclude
     private Item item;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "users_id")
+    @JoinColumn(name = "user_id")
     @ToString.Exclude
     private User author;
     @Column(name = "creation_date")

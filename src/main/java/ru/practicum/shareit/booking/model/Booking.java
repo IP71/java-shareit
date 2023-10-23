@@ -16,17 +16,18 @@ import java.time.LocalDateTime;
 public class Booking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "booking_id")
     private Long id;
     @Column(name = "start_date")
     private LocalDateTime start;
     @Column(name = "end_date")
     private LocalDateTime end;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "items_id")
+    @JoinColumn(name = "item_id")
     @ToString.Exclude
     private Item item;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "users_id")
+    @JoinColumn(name = "user_id")
     @ToString.Exclude
     private User booker;
     @Enumerated(EnumType.STRING)
