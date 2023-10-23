@@ -1,9 +1,12 @@
-package ru.practicum.shareit.item;
+package ru.practicum.shareit.item.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemWithBookingDto;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.model.ItemService;
+import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -15,37 +18,34 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/items")
+@RequiredArgsConstructor
 public class ItemController {
     private final ItemService itemService;
 
-    public ItemController(ItemService itemService) {
-        this.itemService = itemService;
-    }
-
     // Метод создает новую вещь при запросе POST /items
     @PostMapping
-    public ItemDto create(@Valid @RequestBody Item item, @RequestHeader("X-Sharer-User-Id") int ownerId) {
+    public ItemDto create(@Valid @RequestBody Item item, @RequestHeader("X-Sharer-User-Id") long ownerId) {
         return itemService.create(item, ownerId);
     }
 
     // Метод обновляет существующую вещь при запросе PATCH /items/{id}
     @PatchMapping("/{id}")
-    public ItemDto update(@Valid @RequestBody ItemDto itemDto, @RequestHeader("X-Sharer-User-Id") int ownerId,
-                          @PathVariable int id) {
+    public ItemDto update(@RequestBody ItemDto itemDto, @RequestHeader("X-Sharer-User-Id") long ownerId,
+                          @PathVariable long id) {
         itemDto.setId(id);
         return itemService.update(itemDto, ownerId);
     }
 
     // Метод возвращает список всех вещей пользователя при запросе GET /items
     @GetMapping
-    public List<ItemDto> get(@RequestHeader("X-Sharer-User-Id") int ownerId) {
+    public List<ItemWithBookingDto> get(@RequestHeader("X-Sharer-User-Id") long ownerId) {
         return itemService.get(ownerId);
     }
 
     // Метод возвращает вещь по id при запросе GET /items/{id}
     @GetMapping("/{id}")
-    public ItemDto getItemById(@PathVariable int id) {
-        return itemService.getItemById(id);
+    public ItemWithBookingDto getItemById(@PathVariable long id, @RequestHeader("X-Sharer-User-Id") long ownerId) {
+        return itemService.getItemById(id, ownerId);
     }
 
     // Метод возвращает список вещей, найденных по параметру запроса text при запросе GET /items/search
@@ -53,5 +53,12 @@ public class ItemController {
     @GetMapping("/search")
     public List<ItemDto> search(@RequestParam String text) {
         return itemService.search(text);
+    }
+
+    // Метод добавляет комментарий к вещи
+    @PostMapping("/{itemId}/comment")
+    public CommentDto postComment(@Valid @RequestBody CommentDto commentDto,
+                                  @RequestHeader("X-Sharer-User-Id") long authorId, @PathVariable long itemId) {
+        return itemService.postComment(commentDto, authorId, itemId);
     }
 }

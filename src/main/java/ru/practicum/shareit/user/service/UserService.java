@@ -1,6 +1,7 @@
-package ru.practicum.shareit.user.model;
+package ru.practicum.shareit.user.service;
 
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
 
@@ -9,10 +10,8 @@ import java.util.List;
 create(User) создает нового пользователя
 update(UserDto) обновляет существующего пользователя
 get() возвращает список всех пользователей
-getUserById(int) возвращает пользователя по id
-deleteUserById(int) удаляет пользователя по id
-isExistEmail(String) возвращает true если пользователь с таким email существует
-isExistUser(int) возвращает true если пользователь с таким id существует
+getUserById(long) возвращает пользователя по id
+deleteUserById(long) удаляет пользователя по id
 */
 
 public interface UserService {
@@ -22,11 +21,7 @@ public interface UserService {
 
     List<UserDto> get();
 
-    UserDto getUserById(int id);
+    UserDto getUserById(long id);
 
-    void deleteUserById(int id);
-
-    boolean isExistEmail(String email);
-
-    boolean isExistUser(int id);
+    void deleteUserById(long id);
 }
