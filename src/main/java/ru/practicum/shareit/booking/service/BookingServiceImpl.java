@@ -30,6 +30,7 @@ public class BookingServiceImpl implements BookingService {
     private final ItemRepository itemRepository;
     private final BookingRepository bookingRepository;
 
+    // Метод создает новое бронирование
     @Override
     @Transactional
     public BookingDto create(BookingDto bookingDto, Long userId) {
@@ -50,6 +51,7 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toBookingDto(booking);
     }
 
+    // Метод меняет статус для существующего бронирования (APPROVED или REJECTED)
     @Override
     @Transactional
     public BookingDto setStatus(Long userId, Long bookingId, boolean approved) {
@@ -71,6 +73,7 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toBookingDto(booking);
     }
 
+    // Метод возвращает бронирование по id
     @Override
     public BookingDto getBookingById(Long userId, Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
@@ -81,6 +84,7 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toBookingDto(booking);
     }
 
+    // Метод возвращает все бронирования пользователя по типу бронирования (ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED)
     @Override
     public List<BookingDto> getAllBookingsByUser(Long userId, String state) {
         if (!userRepository.existsById(userId)) {
@@ -110,9 +114,12 @@ public class BookingServiceImpl implements BookingService {
             default:
                 throw new InvalidStateException(state);
         }
-        return result.stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
+        return result.stream()
+                .map(BookingMapper::toBookingDto)
+                .collect(Collectors.toList());
     }
 
+    // Метод возвращает бронирования для вещей пользователя по типу бронирования (ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED)
     @Override
     public List<BookingDto> getAllBookingsForItemsBelongToUser(Long userId, String state) {
         if (!userRepository.existsById(userId)) {
@@ -142,6 +149,8 @@ public class BookingServiceImpl implements BookingService {
             default:
                 throw new InvalidStateException(state);
         }
-        return result.stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
+        return result.stream()
+                .map(BookingMapper::toBookingDto)
+                .collect(Collectors.toList());
     }
 }

@@ -26,11 +26,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/*
-Сервисный класс, имплементирующий интерфейс ItemService
-Метод checkIfOwnerExists выбрасывает исключение, если был передан id несуществующего пользователя
-*/
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -40,6 +35,7 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
 
+    // Метод создает новую вещь
     @Override
     @Transactional
     public ItemDto create(Item item, Long ownerId) {
@@ -50,6 +46,7 @@ public class ItemServiceImpl implements ItemService {
         return ItemMapper.toItemDto(item);
     }
 
+    //Метод обновляет существующую вещь
     @Override
     @Transactional
     public ItemDto update(ItemDto itemDto, Long ownerId) {
@@ -67,6 +64,7 @@ public class ItemServiceImpl implements ItemService {
         return ItemMapper.toItemDto(item);
     }
 
+    // Метод возвращает список вещей пользователя
     @Override
     public List<ItemWithBookingDto> get(Long ownerId) {
         checkIfOwnerExists(ownerId);
@@ -78,36 +76,47 @@ public class ItemServiceImpl implements ItemService {
             foundItemsWithBookingDto.add(ItemMapper.toItemWithBookingDto(item,
                     BookingMapper.toBookingDto(bookingRepository.findFirst1ByItemIdAndStartIsBeforeAndStatusIsNotOrderByEndDesc(item.getId(), date, Status.REJECTED).orElse(null)),
                     BookingMapper.toBookingDto(bookingRepository.findFirst1ByItemIdAndStartIsAfterAndStatusIsNotOrderByStartAsc(item.getId(), date, Status.REJECTED).orElse(null)),
-                    commentRepository.findAllByItemId(item.getId()).stream().map(CommentMapper::toCommentDto).collect(Collectors.toList())));
+                    commentRepository.findAllByItemId(item.getId()).stream()
+                            .map(CommentMapper::toCommentDto)
+                            .collect(Collectors.toList())));
         }
         return foundItemsWithBookingDto;
     }
 
+    // Метод возвращает вещь по id
     @Override
     public ItemWithBookingDto getItemById(Long id, Long ownerId) {
         Item item = itemRepository.findById(id).orElseThrow(() -> new ItemNotFoundException(id));
         if (!item.getOwner().equals(ownerId)) {
             return ItemMapper.toItemWithBookingDto(item, null, null,
-                    commentRepository.findAllByItemId(item.getId()).stream().map(CommentMapper::toCommentDto).collect(Collectors.toList()));
+                    commentRepository.findAllByItemId(item.getId()).stream()
+                            .map(CommentMapper::toCommentDto)
+                            .collect(Collectors.toList()));
         } else {
             LocalDateTime date = LocalDateTime.now();
             return ItemMapper.toItemWithBookingDto(item,
                     BookingMapper.toBookingDto(bookingRepository.findFirst1ByItemIdAndStartIsBeforeAndStatusIsNotOrderByEndDesc(item.getId(), date, Status.REJECTED).orElse(null)),
                     BookingMapper.toBookingDto(bookingRepository.findFirst1ByItemIdAndStartIsAfterAndStatusIsNotOrderByStartAsc(item.getId(), date, Status.REJECTED).orElse(null)),
-                    commentRepository.findAllByItemId(item.getId()).stream().map(CommentMapper::toCommentDto).collect(Collectors.toList()));
+                    commentRepository.findAllByItemId(item.getId()).stream()
+                            .map(CommentMapper::toCommentDto)
+                            .collect(Collectors.toList()));
         }
     }
 
+    // Метод возвращает список подходящих по параметру поиска вещей
     @Override
     public List<ItemDto> search(String text) {
         if (text.isBlank()) {
             return Collections.emptyList();
         }
-        List<ItemDto> foundItems = itemRepository.search(text).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
+        List<ItemDto> foundItems = itemRepository.search(text).stream()
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
         log.info("По запросу '{}' было найдено {} вещей", text, foundItems.size());
         return foundItems;
     }
 
+    // Метод добавляет комментарий к вещи по её id
     @Override
     public CommentDto postComment(CommentDto commentDto, Long authorId, Long itemId) {
         User user = userRepository.findById(authorId).orElseThrow(() -> new UserNotFoundException(authorId));
@@ -121,6 +130,7 @@ public class ItemServiceImpl implements ItemService {
         return CommentMapper.toCommentDto(comment);
     }
 
+    // Метод проверяет, существует ли пользователь с таким id
     private void checkIfOwnerExists(Long ownerId) {
         if (!userRepository.existsById(ownerId)) {
             throw new UserNotFoundException(ownerId);

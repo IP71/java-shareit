@@ -9,11 +9,12 @@ import java.util.List;
 
 /*
 Интерфейс сервисного класса для взаимодействия с вещами
-create(Item, long) создает новую вещь
-update(ItemDto, long) обновляет существующую вещь
-get(long) возвращает список вещей пользователя
-getItemById(long) возвращает вещь по id
+create(Item, Long) создает новую вещь
+update(ItemDto, Long) обновляет существующую вещь
+get(Long) возвращает список вещей пользователя
+getItemById(Long) возвращает вещь по id
 search(String) возвращает список подходящих по параметру поиска вещей
+postComment(CommentDto, Long, Long) добавляет комментарий к вещи по её id
 */
 
 public interface ItemService {

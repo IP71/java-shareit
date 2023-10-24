@@ -14,16 +14,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/*
-Сервисный класс, имплементирующий интерфейс UserService
-*/
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository repository;
 
+    // Метод создает нового пользователя
     @Override
     @Transactional
     public UserDto create(User user) {
@@ -32,6 +29,7 @@ public class UserServiceImpl implements UserService {
         return UserMapper.toUserDto(user);
     }
 
+    // Метод обновляет существующего пользователя
     @Override
     @Transactional
     public UserDto update(UserDto userDto) {
@@ -46,6 +44,7 @@ public class UserServiceImpl implements UserService {
         return UserMapper.toUserDto(user);
     }
 
+    // Метод возвращает список всех пользователей
     @Override
     public List<UserDto> get() {
         List<UserDto> foundUsers = repository.findAll().stream()
@@ -55,6 +54,7 @@ public class UserServiceImpl implements UserService {
         return foundUsers;
     }
 
+    // Метод возвращает пользователя по id
     @Override
     public UserDto getUserById(long id) {
         Optional<User> user = repository.findById(id);
@@ -64,6 +64,7 @@ public class UserServiceImpl implements UserService {
         return UserMapper.toUserDto(user.get());
     }
 
+    // Метод удаляет пользователя по id
     @Override
     @Transactional
     public void deleteUserById(long id) {
