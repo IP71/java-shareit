@@ -25,4 +25,10 @@ public class ErrorHandler {
     public ErrorResponse handleBadRequestException(Throwable e) {
         return new ErrorResponse(e.getMessage());
     }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleIllegalArgumentException(IllegalArgumentException e) {
+        return new ErrorResponse("Unknown state: " + e.getMessage().substring(58));
+    }
 }

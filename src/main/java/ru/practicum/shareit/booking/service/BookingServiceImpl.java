@@ -8,6 +8,7 @@ import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.exception.*;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.item.exception.IllegalAccessExceptionItem;
@@ -86,33 +87,33 @@ public class BookingServiceImpl implements BookingService {
 
     // Метод возвращает все бронирования пользователя по типу бронирования (ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED)
     @Override
-    public List<BookingDto> getAllBookingsByUser(Long userId, String state) {
+    public List<BookingDto> getAllBookingsByUser(Long userId, State state) {
         if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException(userId);
         }
         List<Booking> result;
         LocalDateTime date = LocalDateTime.now();
         switch (state) {
-            case "ALL":
+            case ALL:
                 result = bookingRepository.findAllByBookerIdOrderByEndDesc(userId);
                 break;
-            case "CURRENT":
+            case CURRENT:
                 result = bookingRepository.findAllByBookerIdAndStartIsBeforeAndEndIsAfterOrderByEndDesc(userId, date, date);
                 break;
-            case "PAST":
+            case PAST:
                 result = bookingRepository.findAllByBookerIdAndEndIsBeforeOrderByEndDesc(userId, date);
                 break;
-            case "FUTURE":
+            case FUTURE:
                 result = bookingRepository.findAllByBookerIdAndStartIsAfterOrderByEndDesc(userId, date);
                 break;
-            case "WAITING":
+            case WAITING:
                 result = bookingRepository.findAllByBookerIdAndStatusOrderByEndDesc(userId, Status.WAITING);
                 break;
-            case "REJECTED":
+            case REJECTED:
                 result = bookingRepository.findAllByBookerIdAndStatusOrderByEndDesc(userId, Status.REJECTED);
                 break;
             default:
-                throw new InvalidStateException(state);
+                throw new InvalidStateException(state.toString());
         }
         return result.stream()
                 .map(BookingMapper::toBookingDto)
@@ -121,33 +122,33 @@ public class BookingServiceImpl implements BookingService {
 
     // Метод возвращает бронирования для вещей пользователя по типу бронирования (ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED)
     @Override
-    public List<BookingDto> getAllBookingsForItemsBelongToUser(Long userId, String state) {
+    public List<BookingDto> getAllBookingsForItemsBelongToUser(Long userId, State state) {
         if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException(userId);
         }
         List<Booking> result;
         LocalDateTime date = LocalDateTime.now();
         switch (state) {
-            case "ALL":
+            case ALL:
                 result = bookingRepository.findAllByItemOwnerOrderByEndDesc(userId);
                 break;
-            case "CURRENT":
+            case CURRENT:
                 result = bookingRepository.findAllByItemOwnerAndStartIsBeforeAndEndIsAfterOrderByEndDesc(userId, date, date);
                 break;
-            case "PAST":
+            case PAST:
                 result = bookingRepository.findAllByItemOwnerAndEndIsBeforeOrderByEndDesc(userId, date);
                 break;
-            case "FUTURE":
+            case FUTURE:
                 result = bookingRepository.findAllByItemOwnerAndStartIsAfterOrderByEndDesc(userId, date);
                 break;
-            case "WAITING":
+            case WAITING:
                 result = bookingRepository.findAllByItemOwnerAndStatusOrderByEndDesc(userId, Status.WAITING);
                 break;
-            case "REJECTED":
+            case REJECTED:
                 result = bookingRepository.findAllByItemOwnerAndStatusOrderByEndDesc(userId, Status.REJECTED);
                 break;
             default:
-                throw new InvalidStateException(state);
+                throw new InvalidStateException(state.toString());
         }
         return result.stream()
                 .map(BookingMapper::toBookingDto)

@@ -3,6 +3,7 @@ package ru.practicum.shareit.booking.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.booking.service.BookingService;
 
 import javax.validation.Valid;
@@ -41,14 +42,20 @@ public class BookingController {
     // Метод возвращает список бронирований пользователя по их типу state при запросе GET /bookings
     @GetMapping
     public List<BookingDto> getAllBookingsByUser(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                 @RequestParam(defaultValue = "ALL") String state) {
+                                                 @RequestParam(required = false) State state) {
+        if (state == null) {
+            state = State.ALL;
+        }
         return bookingService.getAllBookingsByUser(userId, state);
     }
 
     // Метод возвращает список бронирований для вещей, принадлежащих пользователю, по их типу state при запросе GET /bookings/owner
     @GetMapping("/owner")
     public List<BookingDto> getAllBookingsForItemsBelongToUser(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                               @RequestParam(defaultValue = "ALL") String state) {
+                                                               @RequestParam(required = false) State state) {
+        if (state == null) {
+            state = State.ALL;
+        }
         return bookingService.getAllBookingsForItemsBelongToUser(userId, state);
     }
 }
