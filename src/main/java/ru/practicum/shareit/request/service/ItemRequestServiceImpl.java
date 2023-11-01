@@ -74,8 +74,8 @@ public class ItemRequestServiceImpl implements ItemRequestService {
             throw new UserNotFoundException(requestorId);
         }
         checkFromSize(from, size);
-        List<ItemRequestDto> foundRequests = itemRequestRepository.
-                findAllByRequestorIdIsNotOrderByCreatedDesc(requestorId, PageRequest.of(from / size, size))
+        List<ItemRequestDto> foundRequests = itemRequestRepository
+                .findAllByRequestorIdIsNotOrderByCreatedDesc(requestorId, PageRequest.of(from / size, size))
                 .stream()
                 .map(ItemRequestMapper::toItemRequestDto)
                 .collect(Collectors.toList());
