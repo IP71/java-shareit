@@ -174,10 +174,50 @@ public class BookingServiceTest {
     }
 
     @Test
-    public void getAllBookingsByUser_shouldReturnBookings() {
+    public void getAllBookingsByUser_shouldReturnBookingsWhenStateIsAll() {
         when(mockUserRepository.existsById(1L)).thenReturn(true);
         when(mockBookingRepository.findAllByBookerIdOrderByEndDesc(any(), any())).thenReturn(List.of(booking));
         assertEquals(List.of(toBookingDto(booking)), bookingService.getAllBookingsByUser(1L, State.ALL, 1, 1));
+    }
+
+    @Test
+    public void getAllBookingsByUser_shouldReturnBookingsWhenStateIsCurrent() {
+        when(mockUserRepository.existsById(1L)).thenReturn(true);
+        when(mockBookingRepository.findAllByBookerIdAndStartIsBeforeAndEndIsAfterOrderByEndDesc(any(), any(), any(), any()))
+                .thenReturn(List.of(booking));
+        assertEquals(List.of(toBookingDto(booking)), bookingService.getAllBookingsByUser(1L, State.CURRENT, 1, 1));
+    }
+
+    @Test
+    public void getAllBookingsByUser_shouldReturnBookingsWhenStateIsPast() {
+        when(mockUserRepository.existsById(1L)).thenReturn(true);
+        when(mockBookingRepository.findAllByBookerIdAndEndIsBeforeOrderByEndDesc(any(), any(), any()))
+                .thenReturn(List.of(booking));
+        assertEquals(List.of(toBookingDto(booking)), bookingService.getAllBookingsByUser(1L, State.PAST, 1, 1));
+    }
+
+    @Test
+    public void getAllBookingsByUser_shouldReturnBookingsWhenStateIsFuture() {
+        when(mockUserRepository.existsById(1L)).thenReturn(true);
+        when(mockBookingRepository.findAllByBookerIdAndStartIsAfterOrderByEndDesc(any(), any(), any()))
+                .thenReturn(List.of(booking));
+        assertEquals(List.of(toBookingDto(booking)), bookingService.getAllBookingsByUser(1L, State.FUTURE, 1, 1));
+    }
+
+    @Test
+    public void getAllBookingsByUser_shouldReturnBookingsWhenStateIsWaiting() {
+        when(mockUserRepository.existsById(1L)).thenReturn(true);
+        when(mockBookingRepository.findAllByBookerIdAndStatusOrderByEndDesc(any(), any(), any()))
+                .thenReturn(List.of(booking));
+        assertEquals(List.of(toBookingDto(booking)), bookingService.getAllBookingsByUser(1L, State.WAITING, 1, 1));
+    }
+
+    @Test
+    public void getAllBookingsByUser_shouldReturnBookingsWhenStateIsRejected() {
+        when(mockUserRepository.existsById(1L)).thenReturn(true);
+        when(mockBookingRepository.findAllByBookerIdAndStatusOrderByEndDesc(any(), any(), any()))
+                .thenReturn(List.of(booking));
+        assertEquals(List.of(toBookingDto(booking)), bookingService.getAllBookingsByUser(1L, State.REJECTED, 1, 1));
     }
 
     @Test
@@ -189,10 +229,50 @@ public class BookingServiceTest {
     }
 
     @Test
-    public void getAllBookingsForItemsBelongToUser_shouldReturnBookings() {
+    public void getAllBookingsForItemsBelongToUser_shouldReturnBookingsWhenStateIsAll() {
         when(mockUserRepository.existsById(1L)).thenReturn(true);
         when(mockBookingRepository.findAllByItemOwnerOrderByEndDesc(any(), any())).thenReturn(List.of(booking));
         assertEquals(List.of(toBookingDto(booking)), bookingService.getAllBookingsForItemsBelongToUser(1L, State.ALL, 1, 1));
+    }
+
+    @Test
+    public void getAllBookingsForItemsBelongToUser_shouldReturnBookingsWhenStateIsCurrent() {
+        when(mockUserRepository.existsById(1L)).thenReturn(true);
+        when(mockBookingRepository.findAllByItemOwnerAndStartIsBeforeAndEndIsAfterOrderByEndDesc(any(), any(), any(), any()))
+                .thenReturn(List.of(booking));
+        assertEquals(List.of(toBookingDto(booking)), bookingService.getAllBookingsForItemsBelongToUser(1L, State.CURRENT, 1, 1));
+    }
+
+    @Test
+    public void getAllBookingsForItemsBelongToUser_shouldReturnBookingsWhenStateIsPast() {
+        when(mockUserRepository.existsById(1L)).thenReturn(true);
+        when(mockBookingRepository.findAllByItemOwnerAndEndIsBeforeOrderByEndDesc(any(), any(), any()))
+                .thenReturn(List.of(booking));
+        assertEquals(List.of(toBookingDto(booking)), bookingService.getAllBookingsForItemsBelongToUser(1L, State.PAST, 1, 1));
+    }
+
+    @Test
+    public void getAllBookingsForItemsBelongToUser_shouldReturnBookingsWhenStateIsFuture() {
+        when(mockUserRepository.existsById(1L)).thenReturn(true);
+        when(mockBookingRepository.findAllByItemOwnerAndStartIsAfterOrderByEndDesc(any(), any(), any()))
+                .thenReturn(List.of(booking));
+        assertEquals(List.of(toBookingDto(booking)), bookingService.getAllBookingsForItemsBelongToUser(1L, State.FUTURE, 1, 1));
+    }
+
+    @Test
+    public void getAllBookingsForItemsBelongToUser_shouldReturnBookingsWhenStateIsWaiting() {
+        when(mockUserRepository.existsById(1L)).thenReturn(true);
+        when(mockBookingRepository.findAllByItemOwnerAndStatusOrderByEndDesc(any(), any(), any()))
+                .thenReturn(List.of(booking));
+        assertEquals(List.of(toBookingDto(booking)), bookingService.getAllBookingsForItemsBelongToUser(1L, State.WAITING, 1, 1));
+    }
+
+    @Test
+    public void getAllBookingsForItemsBelongToUser_shouldReturnBookingsWhenStateIsRejected() {
+        when(mockUserRepository.existsById(1L)).thenReturn(true);
+        when(mockBookingRepository.findAllByItemOwnerAndStatusOrderByEndDesc(any(), any(), any()))
+                .thenReturn(List.of(booking));
+        assertEquals(List.of(toBookingDto(booking)), bookingService.getAllBookingsForItemsBelongToUser(1L, State.REJECTED, 1, 1));
     }
 
     @Test
