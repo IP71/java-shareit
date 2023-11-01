@@ -21,7 +21,7 @@ public class ErrorHandler {
         return new ErrorResponse(e.getMessage());
     }
 
-    @ExceptionHandler({ItemNotAvailableException.class, InvalidDateTimeException.class, InvalidStateException.class,
+    @ExceptionHandler({ItemNotAvailableException.class, InvalidDateTimeException.class,
             ThisStatusAlreadySetException.class, IllegalTryToPostCommentException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBadRequestException(Throwable e) {

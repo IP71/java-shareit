@@ -118,7 +118,7 @@ public class BookingServiceImpl implements BookingService {
                 result = bookingRepository.findAllByBookerIdAndStatusOrderByEndDesc(userId, Status.REJECTED, pageRequest);
                 break;
             default:
-                throw new InvalidStateException(state.toString());
+                throw new IllegalArgumentException();
         }
         return result.stream()
                 .map(BookingMapper::toBookingDto)
@@ -155,7 +155,7 @@ public class BookingServiceImpl implements BookingService {
                 result = bookingRepository.findAllByItemOwnerAndStatusOrderByEndDesc(userId, Status.REJECTED, pageRequest);
                 break;
             default:
-                throw new InvalidStateException(state.toString());
+                throw new IllegalArgumentException();
         }
         return result.stream()
                 .map(BookingMapper::toBookingDto)
