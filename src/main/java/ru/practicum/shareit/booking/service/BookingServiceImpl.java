@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -15,6 +16,8 @@ import ru.practicum.shareit.item.exception.IllegalAccessExceptionItem;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.exception.FromIsNegativeException;
+import ru.practicum.shareit.request.exception.SizeIsNotPositiveException;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -87,30 +90,32 @@ public class BookingServiceImpl implements BookingService {
 
     // Метод возвращает все бронирования пользователя по типу бронирования (ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED)
     @Override
-    public List<BookingDto> getAllBookingsByUser(Long userId, State state) {
+    public List<BookingDto> getAllBookingsByUser(Long userId, State state, int from, int size) {
         if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException(userId);
         }
+        checkFromSize(from, size);
+        PageRequest pageRequest = PageRequest.of(from / size, size);
         List<Booking> result;
         LocalDateTime date = LocalDateTime.now();
         switch (state) {
             case ALL:
-                result = bookingRepository.findAllByBookerIdOrderByEndDesc(userId);
+                result = bookingRepository.findAllByBookerIdOrderByEndDesc(userId, pageRequest);
                 break;
             case CURRENT:
-                result = bookingRepository.findAllByBookerIdAndStartIsBeforeAndEndIsAfterOrderByEndDesc(userId, date, date);
+                result = bookingRepository.findAllByBookerIdAndStartIsBeforeAndEndIsAfterOrderByEndDesc(userId, date, date, pageRequest);
                 break;
             case PAST:
-                result = bookingRepository.findAllByBookerIdAndEndIsBeforeOrderByEndDesc(userId, date);
+                result = bookingRepository.findAllByBookerIdAndEndIsBeforeOrderByEndDesc(userId, date, pageRequest);
                 break;
             case FUTURE:
-                result = bookingRepository.findAllByBookerIdAndStartIsAfterOrderByEndDesc(userId, date);
+                result = bookingRepository.findAllByBookerIdAndStartIsAfterOrderByEndDesc(userId, date, pageRequest);
                 break;
             case WAITING:
-                result = bookingRepository.findAllByBookerIdAndStatusOrderByEndDesc(userId, Status.WAITING);
+                result = bookingRepository.findAllByBookerIdAndStatusOrderByEndDesc(userId, Status.WAITING, pageRequest);
                 break;
             case REJECTED:
-                result = bookingRepository.findAllByBookerIdAndStatusOrderByEndDesc(userId, Status.REJECTED);
+                result = bookingRepository.findAllByBookerIdAndStatusOrderByEndDesc(userId, Status.REJECTED, pageRequest);
                 break;
             default:
                 throw new InvalidStateException(state.toString());
@@ -122,30 +127,32 @@ public class BookingServiceImpl implements BookingService {
 
     // Метод возвращает бронирования для вещей пользователя по типу бронирования (ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED)
     @Override
-    public List<BookingDto> getAllBookingsForItemsBelongToUser(Long userId, State state) {
+    public List<BookingDto> getAllBookingsForItemsBelongToUser(Long userId, State state, int from, int size) {
         if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException(userId);
         }
+        checkFromSize(from, size);
+        PageRequest pageRequest = PageRequest.of(from / size, size);
         List<Booking> result;
         LocalDateTime date = LocalDateTime.now();
         switch (state) {
             case ALL:
-                result = bookingRepository.findAllByItemOwnerOrderByEndDesc(userId);
+                result = bookingRepository.findAllByItemOwnerOrderByEndDesc(userId, pageRequest);
                 break;
             case CURRENT:
-                result = bookingRepository.findAllByItemOwnerAndStartIsBeforeAndEndIsAfterOrderByEndDesc(userId, date, date);
+                result = bookingRepository.findAllByItemOwnerAndStartIsBeforeAndEndIsAfterOrderByEndDesc(userId, date, date, pageRequest);
                 break;
             case PAST:
-                result = bookingRepository.findAllByItemOwnerAndEndIsBeforeOrderByEndDesc(userId, date);
+                result = bookingRepository.findAllByItemOwnerAndEndIsBeforeOrderByEndDesc(userId, date, pageRequest);
                 break;
             case FUTURE:
-                result = bookingRepository.findAllByItemOwnerAndStartIsAfterOrderByEndDesc(userId, date);
+                result = bookingRepository.findAllByItemOwnerAndStartIsAfterOrderByEndDesc(userId, date, pageRequest);
                 break;
             case WAITING:
-                result = bookingRepository.findAllByItemOwnerAndStatusOrderByEndDesc(userId, Status.WAITING);
+                result = bookingRepository.findAllByItemOwnerAndStatusOrderByEndDesc(userId, Status.WAITING, pageRequest);
                 break;
             case REJECTED:
-                result = bookingRepository.findAllByItemOwnerAndStatusOrderByEndDesc(userId, Status.REJECTED);
+                result = bookingRepository.findAllByItemOwnerAndStatusOrderByEndDesc(userId, Status.REJECTED, pageRequest);
                 break;
             default:
                 throw new InvalidStateException(state.toString());
@@ -153,5 +160,15 @@ public class BookingServiceImpl implements BookingService {
         return result.stream()
                 .map(BookingMapper::toBookingDto)
                 .collect(Collectors.toList());
+    }
+
+    // Метод проверяет корректность значений from и size
+    private void checkFromSize(int from, int size) {
+        if (from < 0) {
+            throw new FromIsNegativeException(from);
+        }
+        if (size <= 0) {
+            throw new SizeIsNotPositiveException(size);
+        }
     }
 }

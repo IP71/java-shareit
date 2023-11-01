@@ -38,8 +38,10 @@ public class ItemController {
 
     // Метод возвращает список всех вещей пользователя при запросе GET /items
     @GetMapping
-    public List<ItemWithBookingDto> get(@RequestHeader("X-Sharer-User-Id") long ownerId) {
-        return itemService.get(ownerId);
+    public List<ItemWithBookingDto> get(@RequestHeader("X-Sharer-User-Id") long ownerId,
+                                        @RequestParam(defaultValue = "0") int from,
+                                        @RequestParam(defaultValue = "20") int size) {
+        return itemService.get(ownerId, from, size);
     }
 
     // Метод возвращает вещь по id при запросе GET /items/{id}
@@ -51,8 +53,10 @@ public class ItemController {
     // Метод возвращает список вещей, найденных по параметру запроса text при запросе GET /items/search
     // Параметр запроса text передается в параметре http запроса text
     @GetMapping("/search")
-    public List<ItemDto> search(@RequestParam String text) {
-        return itemService.search(text);
+    public List<ItemDto> search(@RequestParam String text,
+                                @RequestParam(defaultValue = "0") int from,
+                                @RequestParam(defaultValue = "20") int size) {
+        return itemService.search(text, from, size);
     }
 
     // Метод добавляет комментарий к вещи

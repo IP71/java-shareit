@@ -10,8 +10,9 @@ import java.util.List;
 create(BookingDto, Long) создает новое бронирование
 setStatus(Long, Long, boolean) меняет статус для существующего бронирования
 getBookingById(Long, Long) возвращает бронирование по id
-getAllBookingsByUser(Long, String) возвращает все бронирования пользователя по их типу (ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED)
-getAllBookingsForItemsBelongToUser(Long, String) возвращает бронирования для вещей пользователя по их типу
+getAllBookingsByUser(Long, String, int, int) возвращает все бронирования пользователя по их типу
+(ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED)
+getAllBookingsForItemsBelongToUser(Long, String, int, int) возвращает бронирования для вещей пользователя по их типу
 */
 
 public interface BookingService {
@@ -21,7 +22,7 @@ public interface BookingService {
 
     BookingDto getBookingById(Long userId, Long bookingId);
 
-    List<BookingDto> getAllBookingsByUser(Long userId, State state);
+    List<BookingDto> getAllBookingsByUser(Long userId, State state, int from, int size);
 
-    List<BookingDto> getAllBookingsForItemsBelongToUser(Long userId, State state);
+    List<BookingDto> getAllBookingsForItemsBelongToUser(Long userId, State state, int from, int size);
 }

@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingMapper;
@@ -16,6 +17,10 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.exception.FromIsNegativeException;
+import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
+import ru.practicum.shareit.request.exception.SizeIsNotPositiveException;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -34,6 +39,7 @@ public class ItemServiceImpl implements ItemService {
     private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     // Метод создает новую вещь
     @Override
@@ -41,6 +47,10 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto create(Item item, Long ownerId) {
         checkIfOwnerExists(ownerId);
         item.setOwner(ownerId);
+        Long requestId = item.getRequestId();
+        if (requestId != null) {
+            itemRequestRepository.findById(requestId).orElseThrow(() -> new ItemRequestNotFoundException(requestId));
+        }
         item = itemRepository.save(item);
         log.info("Вещь с id={} была создана", item.getId());
         return ItemMapper.toItemDto(item);
@@ -50,25 +60,23 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public ItemDto update(ItemDto itemDto, Long ownerId) {
-        if (!itemRepository.existsById(itemDto.getId())) {
-            throw new ItemNotFoundException(itemDto.getId());
-        }
         checkIfOwnerExists(ownerId);
-        Item item = itemRepository.findById(itemDto.getId()).get();
+        Item item = itemRepository.findById(itemDto.getId()).orElseThrow(() -> new ItemNotFoundException(itemDto.getId()));
         if (!item.getOwner().equals(ownerId)) {
             throw new IllegalAccessExceptionItem(ownerId, item.getId());
         }
         item = ItemMapper.toItem(itemDto, item);
-        itemRepository.save(item);
+        item = itemRepository.save(item);
         log.info("Вещь с id={} была обновлена", itemDto.getId());
         return ItemMapper.toItemDto(item);
     }
 
     // Метод возвращает список вещей пользователя
     @Override
-    public List<ItemWithBookingDto> get(Long ownerId) {
+    public List<ItemWithBookingDto> get(Long ownerId, int from, int size) {
         checkIfOwnerExists(ownerId);
-        List<Item> foundItems = itemRepository.findAllByOwner(ownerId);
+        checkFromSize(from, size);
+        List<Item> foundItems = itemRepository.findAllByOwner(ownerId, PageRequest.of(from / size, size));
         log.info("Было найдено {} вещей, принадлежащих пользователю с id={}", foundItems.size(), ownerId);
         List<ItemWithBookingDto> foundItemsWithBookingDto = new ArrayList<>();
         LocalDateTime date = LocalDateTime.now();
@@ -105,11 +113,12 @@ public class ItemServiceImpl implements ItemService {
 
     // Метод возвращает список подходящих по параметру поиска вещей
     @Override
-    public List<ItemDto> search(String text) {
+    public List<ItemDto> search(String text, int from, int size) {
+        checkFromSize(from, size);
         if (text.isBlank()) {
             return Collections.emptyList();
         }
-        List<ItemDto> foundItems = itemRepository.search(text).stream()
+        List<ItemDto> foundItems = itemRepository.search(text, PageRequest.of(from / size, size)).stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
         log.info("По запросу '{}' было найдено {} вещей", text, foundItems.size());
@@ -134,6 +143,16 @@ public class ItemServiceImpl implements ItemService {
     private void checkIfOwnerExists(Long ownerId) {
         if (!userRepository.existsById(ownerId)) {
             throw new UserNotFoundException(ownerId);
+        }
+    }
+
+    // Метод проверяет корректность значений from и size
+    private void checkFromSize(int from, int size) {
+        if (from < 0) {
+            throw new FromIsNegativeException(from);
+        }
+        if (size <= 0) {
+            throw new SizeIsNotPositiveException(size);
         }
     }
 }

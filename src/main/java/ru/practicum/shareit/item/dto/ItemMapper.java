@@ -13,7 +13,7 @@ public class ItemMapper {
     // Метод получает экземпляр Item и возвращает экземпляр ItemDto
     public static ItemDto toItemDto(Item item) {
         return new ItemDto(item.getId(), item.getName(), item.getDescription(), item.getAvailable(),
-                item.getRequest());
+                item.getRequestId());
     }
 
     // Метод получает экземпляр Item и соответствующий ему экземпляр ItemDto и возвращает обновленный экземпляр Item
@@ -28,8 +28,8 @@ public class ItemMapper {
         if (itemDto.getAvailable() != null) {
             item.setAvailable(itemDto.getAvailable());
         }
-        if (itemDto.getRequest() != null) {
-            item.setRequest(itemDto.getRequest());
+        if (itemDto.getRequestId() != null) {
+            item.setRequestId(itemDto.getRequestId());
         }
         return item;
     }
@@ -42,7 +42,7 @@ public class ItemMapper {
                 .name(item.getName())
                 .description(item.getDescription())
                 .available(item.getAvailable())
-                .request(item.getRequest())
+                .request(item.getRequestId())
                 .lastBooking(lastBooking)
                 .nextBooking(nextBooking)
                 .comments(comments)

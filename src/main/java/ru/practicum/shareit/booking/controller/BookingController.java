@@ -42,20 +42,24 @@ public class BookingController {
     // Метод возвращает список бронирований пользователя по их типу state при запросе GET /bookings
     @GetMapping
     public List<BookingDto> getAllBookingsByUser(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                 @RequestParam(required = false) State state) {
+                                                 @RequestParam(required = false) State state,
+                                                 @RequestParam(defaultValue = "0") int from,
+                                                 @RequestParam(defaultValue = "20") int size) {
         if (state == null) {
             state = State.ALL;
         }
-        return bookingService.getAllBookingsByUser(userId, state);
+        return bookingService.getAllBookingsByUser(userId, state, from, size);
     }
 
     // Метод возвращает список бронирований для вещей, принадлежащих пользователю, по их типу state при запросе GET /bookings/owner
     @GetMapping("/owner")
     public List<BookingDto> getAllBookingsForItemsBelongToUser(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                               @RequestParam(required = false) State state) {
+                                                               @RequestParam(required = false) State state,
+                                                               @RequestParam(defaultValue = "0") int from,
+                                                               @RequestParam(defaultValue = "20") int size) {
         if (state == null) {
             state = State.ALL;
         }
-        return bookingService.getAllBookingsForItemsBelongToUser(userId, state);
+        return bookingService.getAllBookingsForItemsBelongToUser(userId, state, from, size);
     }
 }

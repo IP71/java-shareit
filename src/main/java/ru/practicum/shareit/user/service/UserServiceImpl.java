@@ -33,11 +33,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDto update(UserDto userDto) {
-        if (!repository.existsById(userDto.getId())) {
-            throw new UserNotFoundException(userDto.getId());
-        }
-        User user = repository.findById(userDto.getId()).get();
-        String oldEmail = user.getEmail();
+        User user = repository.findById(userDto.getId()).orElseThrow(() -> new UserNotFoundException(userDto.getId()));
         user = UserMapper.toUser(userDto, user);
         repository.save(user);
         log.info("Пользователь с id={} был обновлен", user.getId());
