@@ -5,15 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.service.FromSizeValidator;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestMapper;
-import ru.practicum.shareit.request.exception.FromIsNegativeException;
 import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
-import ru.practicum.shareit.request.exception.SizeIsNotPositiveException;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
@@ -32,7 +31,13 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
 
-    // Метод создает новый реквест
+    /**
+     * Метод создает новый реквест
+     *
+     * @param itemRequestDto - объект для создания реквеста
+     * @param requestorId    - id автора реквеста
+     * @return - возвращает созданный ItemRequest (в виде ItemRequestDto)
+     */
     @Override
     @Transactional
     public ItemRequestDto create(ItemRequestDto itemRequestDto, Long requestorId) {
@@ -42,7 +47,12 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         return ItemRequestMapper.toItemRequestDto(itemRequest);
     }
 
-    // Метод возвращает реквесты пользователя
+    /**
+     * Метод возвращает реквесты пользователя
+     *
+     * @param requestorId - id пользователя
+     * @return - возвращает список реквестов
+     */
     @Override
     public List<ItemRequestDto> getUserRequests(Long requestorId) {
         if (!userRepository.existsById(requestorId)) {
@@ -67,13 +77,20 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         return foundRequests;
     }
 
-    // Метод возвращает реквесты других пользователей
+    /**
+     * Метод возвращает реквесты других пользователей
+     *
+     * @param requestorId - id пользователя
+     * @param from        - с какого реквеста начать
+     * @param size        - количество получаемых реквестов
+     * @return - возвращает список реквестов
+     */
     @Override
     public List<ItemRequestDto> getAllUsersRequests(Long requestorId, int from, int size) {
         if (!userRepository.existsById(requestorId)) {
             throw new UserNotFoundException(requestorId);
         }
-        checkFromSize(from, size);
+        FromSizeValidator.checkFromSize(from, size);
         List<ItemRequestDto> foundRequests = itemRequestRepository
                 .findAllByRequestorIdIsNotOrderByCreatedDesc(requestorId, PageRequest.of(from / size, size))
                 .stream()
@@ -94,7 +111,13 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         return foundRequests;
     }
 
-    // Метод возвращает реквест по id
+    /**
+     * Метод возвращает реквест по id
+     *
+     * @param requestorId - id автора реквеста
+     * @param requestId   - id реквеста
+     * @return - возвращает реквест
+     */
     @Override
     public ItemRequestDto getRequestById(Long requestorId, Long requestId) {
         if (!userRepository.existsById(requestorId)) {
@@ -107,15 +130,5 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                 .collect(Collectors.toList());
         request.setItems(foundItems);
         return request;
-    }
-
-    // Метод проверяет корректность значений from и size
-    private void checkFromSize(int from, int size) {
-        if (from < 0) {
-            throw new FromIsNegativeException(from);
-        }
-        if (size <= 0) {
-            throw new SizeIsNotPositiveException(size);
-        }
     }
 }

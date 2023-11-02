@@ -9,6 +9,7 @@ import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.booking.service.FromSizeValidator;
 import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.exception.IllegalAccessExceptionItem;
 import ru.practicum.shareit.item.exception.IllegalTryToPostCommentException;
@@ -17,9 +18,7 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.request.exception.FromIsNegativeException;
 import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
-import ru.practicum.shareit.request.exception.SizeIsNotPositiveException;
 import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
@@ -41,7 +40,13 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final ItemRequestRepository itemRequestRepository;
 
-    // Метод создает новую вещь
+    /**
+     * Метод создает новую вещь
+     *
+     * @param item    - объект для создания вещи
+     * @param ownerId - id владельца вещи
+     * @return - возвращает созданный Item (в виде ItemDto)
+     */
     @Override
     @Transactional
     public ItemDto create(Item item, Long ownerId) {
@@ -56,7 +61,13 @@ public class ItemServiceImpl implements ItemService {
         return ItemMapper.toItemDto(item);
     }
 
-    //Метод обновляет существующую вещь
+    /**
+     * Метод обновляет существующую вещь
+     *
+     * @param itemDto - объект для обновления вещи
+     * @param ownerId - id владельца вещи
+     * @return - возвращает обновленный Item (в виде ItemDto)
+     */
     @Override
     @Transactional
     public ItemDto update(ItemDto itemDto, Long ownerId) {
@@ -71,11 +82,18 @@ public class ItemServiceImpl implements ItemService {
         return ItemMapper.toItemDto(item);
     }
 
-    // Метод возвращает список вещей пользователя
+    /**
+     * Метод возвращает список вещей пользователя
+     *
+     * @param ownerId - id пользователя
+     * @param from    - с какой вещи начать
+     * @param size    - количество получаемых вещей
+     * @return - возвращает список вещей
+     */
     @Override
     public List<ItemWithBookingDto> get(Long ownerId, int from, int size) {
         checkIfOwnerExists(ownerId);
-        checkFromSize(from, size);
+        FromSizeValidator.checkFromSize(from, size);
         List<Item> foundItems = itemRepository.findAllByOwner(ownerId, PageRequest.of(from / size, size));
         log.info("Было найдено {} вещей, принадлежащих пользователю с id={}", foundItems.size(), ownerId);
         List<ItemWithBookingDto> foundItemsWithBookingDto = new ArrayList<>();
@@ -91,7 +109,13 @@ public class ItemServiceImpl implements ItemService {
         return foundItemsWithBookingDto;
     }
 
-    // Метод возвращает вещь по id
+    /**
+     * Метод возвращает вещь по id
+     *
+     * @param id      - id вещи
+     * @param ownerId - id пользователя
+     * @return - возвращает вещь
+     */
     @Override
     public ItemWithBookingDto getItemById(Long id, Long ownerId) {
         Item item = itemRepository.findById(id).orElseThrow(() -> new ItemNotFoundException(id));
@@ -111,10 +135,17 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
-    // Метод возвращает список подходящих по параметру поиска вещей
+    /**
+     * Метод возвращает список подходящих по параметру поиска вещей
+     *
+     * @param text - поисковый запрос
+     * @param from - с какой вещи начать
+     * @param size - количество получаемых вещей
+     * @return - возвращает список вещей
+     */
     @Override
     public List<ItemDto> search(String text, int from, int size) {
-        checkFromSize(from, size);
+        FromSizeValidator.checkFromSize(from, size);
         if (text.isBlank()) {
             return Collections.emptyList();
         }
@@ -125,7 +156,14 @@ public class ItemServiceImpl implements ItemService {
         return foundItems;
     }
 
-    // Метод добавляет комментарий к вещи по её id
+    /**
+     * Метод добавляет комментарий к вещи по её id
+     *
+     * @param commentDto - объект комментария
+     * @param authorId   - id автора
+     * @param itemId     - id вещи
+     * @return - возвращает созданный объект Comment (в виде CommentDto)
+     */
     @Override
     public CommentDto postComment(CommentDto commentDto, Long authorId, Long itemId) {
         User user = userRepository.findById(authorId).orElseThrow(() -> new UserNotFoundException(authorId));
@@ -139,20 +177,14 @@ public class ItemServiceImpl implements ItemService {
         return CommentMapper.toCommentDto(comment);
     }
 
-    // Метод проверяет, существует ли пользователь с таким id
+    /**
+     * Метод проверяет, существует ли пользователь с таким id
+     *
+     * @param ownerId - id пользователя
+     */
     private void checkIfOwnerExists(Long ownerId) {
         if (!userRepository.existsById(ownerId)) {
             throw new UserNotFoundException(ownerId);
-        }
-    }
-
-    // Метод проверяет корректность значений from и size
-    private void checkFromSize(int from, int size) {
-        if (from < 0) {
-            throw new FromIsNegativeException(from);
-        }
-        if (size <= 0) {
-            throw new SizeIsNotPositiveException(size);
         }
     }
 }

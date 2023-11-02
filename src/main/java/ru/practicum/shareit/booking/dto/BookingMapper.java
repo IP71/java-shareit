@@ -6,12 +6,17 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.model.User;
 
-/*
-Класс для преобразования экземпляров Booking и BookingDto друг в друга
-*/
+/**
+ * Класс для преобразования экземпляров Booking и BookingDto друг в друга
+ */
 
 public class BookingMapper {
-    // Метод получает объект класса Booking и возвращает объект BookingDto
+    /**
+     * Метод получает объект класса Booking и возвращает объект BookingDto
+     *
+     * @param booking - объект Booking, который нужно преобразовать в BookingDto
+     * @return - возвращает BookingDto
+     */
     public static BookingDto toBookingDto(Booking booking) {
         if (booking == null) {
             return null;
@@ -28,7 +33,14 @@ public class BookingMapper {
                 .build();
     }
 
-    // Метод получает объекты классов BookingDto, User и Item и возвращает объект Booking
+    /**
+     * Метод получает объекты классов BookingDto, User и Item и возвращает объект Booking
+     *
+     * @param bookingDto - объект BookingDto, который нужно преобразовать в Booking
+     * @param user       - объект User, автор бронирования
+     * @param item       - объект Item, вещь, которую бронируют
+     * @return - возвращает Booking
+     */
     public static Booking toBooking(BookingDto bookingDto, User user, Item item) {
         return Booking.builder()
                 .id(bookingDto.getId())

@@ -16,8 +16,6 @@ import ru.practicum.shareit.item.exception.IllegalAccessExceptionItem;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.request.exception.FromIsNegativeException;
-import ru.practicum.shareit.request.exception.SizeIsNotPositiveException;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -34,7 +32,13 @@ public class BookingServiceImpl implements BookingService {
     private final ItemRepository itemRepository;
     private final BookingRepository bookingRepository;
 
-    // Метод создает новое бронирование
+    /**
+     * Метод создает новое бронирование
+     *
+     * @param bookingDto - объект для создания бронирования
+     * @param userId     - id автора бронирования
+     * @return - возвращает измененный объект Booking (в виде BookingDto)
+     */
     @Override
     @Transactional
     public BookingDto create(BookingDto bookingDto, Long userId) {
@@ -55,7 +59,14 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toBookingDto(booking);
     }
 
-    // Метод меняет статус для существующего бронирования (APPROVED или REJECTED)
+    /**
+     * Метод меняет статус для существующего бронирования (APPROVED или REJECTED)
+     *
+     * @param userId    - id автора бронирования
+     * @param bookingId - id бронирования
+     * @param approved  - статус бронирования
+     * @return - возвращает измененный объект Booking (в виде BookingDto)
+     */
     @Override
     @Transactional
     public BookingDto setStatus(Long userId, Long bookingId, boolean approved) {
@@ -77,7 +88,13 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toBookingDto(booking);
     }
 
-    // Метод возвращает бронирование по id
+    /**
+     * Метод возвращает бронирование по id
+     *
+     * @param userId    - id пользователя
+     * @param bookingId - id бронирования
+     * @return - возвращает объект Booking (в виде BookingDto)
+     */
     @Override
     public BookingDto getBookingById(Long userId, Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
@@ -88,13 +105,21 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toBookingDto(booking);
     }
 
-    // Метод возвращает все бронирования пользователя по типу бронирования (ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED)
+    /**
+     * Метод возвращает все бронирования пользователя по типу бронирования (ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED)
+     *
+     * @param userId - id пользователя
+     * @param state  - тип бронирования (ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED)
+     * @param from   - с какого бронирования начать (начиная с самого позднего по дате окончания)
+     * @param size   - количество получаемых бронирований
+     * @return - возвращает список бронирований
+     */
     @Override
     public List<BookingDto> getAllBookingsByUser(Long userId, State state, int from, int size) {
         if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException(userId);
         }
-        checkFromSize(from, size);
+        FromSizeValidator.checkFromSize(from, size);
         PageRequest pageRequest = PageRequest.of(from / size, size);
         List<Booking> result;
         LocalDateTime date = LocalDateTime.now();
@@ -125,13 +150,21 @@ public class BookingServiceImpl implements BookingService {
                 .collect(Collectors.toList());
     }
 
-    // Метод возвращает бронирования для вещей пользователя по типу бронирования (ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED)
+    /**
+     * Метод возвращает бронирования для вещей пользователя по типу бронирования (ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED)
+     *
+     * @param userId - id пользователя
+     * @param state  - тип бронирования (ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED)
+     * @param from   - с какого бронирования начать (начиная с самого позднего по дате окончания)
+     * @param size   - количество получаемых бронирований
+     * @return - возвращает список бронирований
+     */
     @Override
     public List<BookingDto> getAllBookingsForItemsBelongToUser(Long userId, State state, int from, int size) {
         if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException(userId);
         }
-        checkFromSize(from, size);
+        FromSizeValidator.checkFromSize(from, size);
         PageRequest pageRequest = PageRequest.of(from / size, size);
         List<Booking> result;
         LocalDateTime date = LocalDateTime.now();
@@ -160,15 +193,5 @@ public class BookingServiceImpl implements BookingService {
         return result.stream()
                 .map(BookingMapper::toBookingDto)
                 .collect(Collectors.toList());
-    }
-
-    // Метод проверяет корректность значений from и size
-    private void checkFromSize(int from, int size) {
-        if (from < 0) {
-            throw new FromIsNegativeException(from);
-        }
-        if (size <= 0) {
-            throw new SizeIsNotPositiveException(size);
-        }
     }
 }
