@@ -5,23 +5,58 @@ import ru.practicum.shareit.booking.model.State;
 
 import java.util.List;
 
-/*
-Интерфейс сервисного класса для взаимодействия с бронированиями
-create(BookingDto, Long) создает новое бронирование
-setStatus(Long, Long, boolean) меняет статус для существующего бронирования
-getBookingById(Long, Long) возвращает бронирование по id
-getAllBookingsByUser(Long, String) возвращает все бронирования пользователя по их типу (ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED)
-getAllBookingsForItemsBelongToUser(Long, String) возвращает бронирования для вещей пользователя по их типу
-*/
+/**
+ * Интерфейс сервисного класса для взаимодействия с бронированиями
+ */
 
 public interface BookingService {
+    /**
+     * Метод создает новое бронирование
+     *
+     * @param bookingDto - объект для создания бронирования
+     * @param userId     - id автора бронирования
+     * @return - возвращает измененный объект Booking (в виде BookingDto)
+     */
     BookingDto create(BookingDto bookingDto, Long userId);
 
+    /**
+     * Метод меняет статус для существующего бронирования (APPROVED или REJECTED)
+     *
+     * @param userId    - id автора бронирования
+     * @param bookingId - id бронирования
+     * @param approved  - статус бронирования
+     * @return - возвращает измененный объект Booking (в виде BookingDto)
+     */
     BookingDto setStatus(Long userId, Long bookingId, boolean approved);
 
+    /**
+     * Метод возвращает бронирование по id
+     *
+     * @param userId    - id пользователя
+     * @param bookingId - id бронирования
+     * @return - возвращает объект Booking (в виде BookingDto)
+     */
     BookingDto getBookingById(Long userId, Long bookingId);
 
-    List<BookingDto> getAllBookingsByUser(Long userId, State state);
+    /**
+     * Метод возвращает все бронирования пользователя по типу бронирования (ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED)
+     *
+     * @param userId - id пользователя
+     * @param state  - тип бронирования (ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED)
+     * @param from   - с какого бронирования начать (начиная с самого позднего по дате окончания)
+     * @param size   - количество получаемых бронирований
+     * @return - возвращает список бронирований
+     */
+    List<BookingDto> getAllBookingsByUser(Long userId, State state, int from, int size);
 
-    List<BookingDto> getAllBookingsForItemsBelongToUser(Long userId, State state);
+    /**
+     * Метод возвращает бронирования для вещей пользователя по типу бронирования (ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED)
+     *
+     * @param userId - id пользователя
+     * @param state  - тип бронирования (ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED)
+     * @param from   - с какого бронирования начать (начиная с самого позднего по дате окончания)
+     * @param size   - количество получаемых бронирований
+     * @return - возвращает список бронирований
+     */
+    List<BookingDto> getAllBookingsForItemsBelongToUser(Long userId, State state, int from, int size);
 }

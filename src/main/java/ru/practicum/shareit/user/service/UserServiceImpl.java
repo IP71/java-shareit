@@ -20,7 +20,12 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserRepository repository;
 
-    // Метод создает нового пользователя
+    /**
+     * Метод создает нового пользователя
+     *
+     * @param user - объект для создания пользователя
+     * @return - возвращает созданный User (в виде UserDto)
+     */
     @Override
     @Transactional
     public UserDto create(User user) {
@@ -29,22 +34,27 @@ public class UserServiceImpl implements UserService {
         return UserMapper.toUserDto(user);
     }
 
-    // Метод обновляет существующего пользователя
+    /**
+     * Метод обновляет существующего пользователя
+     *
+     * @param userDto - объект для обновления пользователя
+     * @return - возвращает обновленный User (в виде UserDto)
+     */
     @Override
     @Transactional
     public UserDto update(UserDto userDto) {
-        if (!repository.existsById(userDto.getId())) {
-            throw new UserNotFoundException(userDto.getId());
-        }
-        User user = repository.findById(userDto.getId()).get();
-        String oldEmail = user.getEmail();
+        User user = repository.findById(userDto.getId()).orElseThrow(() -> new UserNotFoundException(userDto.getId()));
         user = UserMapper.toUser(userDto, user);
         repository.save(user);
         log.info("Пользователь с id={} был обновлен", user.getId());
         return UserMapper.toUserDto(user);
     }
 
-    // Метод возвращает список всех пользователей
+    /**
+     * Метод возвращает список всех пользователей
+     *
+     * @return - возвращает список пользователей
+     */
     @Override
     public List<UserDto> get() {
         List<UserDto> foundUsers = repository.findAll().stream()
@@ -54,7 +64,12 @@ public class UserServiceImpl implements UserService {
         return foundUsers;
     }
 
-    // Метод возвращает пользователя по id
+    /**
+     * Метод возвращает пользователя по id
+     *
+     * @param id - id пользователя
+     * @return - возвращает пользователя
+     */
     @Override
     public UserDto getUserById(long id) {
         Optional<User> user = repository.findById(id);
@@ -64,7 +79,11 @@ public class UserServiceImpl implements UserService {
         return UserMapper.toUserDto(user.get());
     }
 
-    // Метод удаляет пользователя по id
+    /**
+     * Метод удаляет пользователя по id
+     *
+     * @param id - id пользователя
+     */
     @Override
     @Transactional
     public void deleteUserById(long id) {

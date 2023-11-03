@@ -2,12 +2,14 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.booking.service.FromSizeValidator;
 import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.exception.IllegalAccessExceptionItem;
 import ru.practicum.shareit.item.exception.IllegalTryToPostCommentException;
@@ -16,6 +18,8 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -34,41 +38,63 @@ public class ItemServiceImpl implements ItemService {
     private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
-    // Метод создает новую вещь
+    /**
+     * Метод создает новую вещь
+     *
+     * @param item    - объект для создания вещи
+     * @param ownerId - id владельца вещи
+     * @return - возвращает созданный Item (в виде ItemDto)
+     */
     @Override
     @Transactional
     public ItemDto create(Item item, Long ownerId) {
         checkIfOwnerExists(ownerId);
         item.setOwner(ownerId);
+        Long requestId = item.getRequestId();
+        if (requestId != null) {
+            itemRequestRepository.findById(requestId).orElseThrow(() -> new ItemRequestNotFoundException(requestId));
+        }
         item = itemRepository.save(item);
         log.info("Вещь с id={} была создана", item.getId());
         return ItemMapper.toItemDto(item);
     }
 
-    //Метод обновляет существующую вещь
+    /**
+     * Метод обновляет существующую вещь
+     *
+     * @param itemDto - объект для обновления вещи
+     * @param ownerId - id владельца вещи
+     * @return - возвращает обновленный Item (в виде ItemDto)
+     */
     @Override
     @Transactional
     public ItemDto update(ItemDto itemDto, Long ownerId) {
-        if (!itemRepository.existsById(itemDto.getId())) {
-            throw new ItemNotFoundException(itemDto.getId());
-        }
         checkIfOwnerExists(ownerId);
-        Item item = itemRepository.findById(itemDto.getId()).get();
+        Item item = itemRepository.findById(itemDto.getId()).orElseThrow(() -> new ItemNotFoundException(itemDto.getId()));
         if (!item.getOwner().equals(ownerId)) {
             throw new IllegalAccessExceptionItem(ownerId, item.getId());
         }
         item = ItemMapper.toItem(itemDto, item);
-        itemRepository.save(item);
+        item = itemRepository.save(item);
         log.info("Вещь с id={} была обновлена", itemDto.getId());
         return ItemMapper.toItemDto(item);
     }
 
-    // Метод возвращает список вещей пользователя
+    /**
+     * Метод возвращает список вещей пользователя
+     *
+     * @param ownerId - id пользователя
+     * @param from    - с какой вещи начать
+     * @param size    - количество получаемых вещей
+     * @return - возвращает список вещей
+     */
     @Override
-    public List<ItemWithBookingDto> get(Long ownerId) {
+    public List<ItemWithBookingDto> get(Long ownerId, int from, int size) {
         checkIfOwnerExists(ownerId);
-        List<Item> foundItems = itemRepository.findAllByOwner(ownerId);
+        FromSizeValidator.checkFromSize(from, size);
+        List<Item> foundItems = itemRepository.findAllByOwner(ownerId, PageRequest.of(from / size, size));
         log.info("Было найдено {} вещей, принадлежащих пользователю с id={}", foundItems.size(), ownerId);
         List<ItemWithBookingDto> foundItemsWithBookingDto = new ArrayList<>();
         LocalDateTime date = LocalDateTime.now();
@@ -83,7 +109,13 @@ public class ItemServiceImpl implements ItemService {
         return foundItemsWithBookingDto;
     }
 
-    // Метод возвращает вещь по id
+    /**
+     * Метод возвращает вещь по id
+     *
+     * @param id      - id вещи
+     * @param ownerId - id пользователя
+     * @return - возвращает вещь
+     */
     @Override
     public ItemWithBookingDto getItemById(Long id, Long ownerId) {
         Item item = itemRepository.findById(id).orElseThrow(() -> new ItemNotFoundException(id));
@@ -103,20 +135,35 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
-    // Метод возвращает список подходящих по параметру поиска вещей
+    /**
+     * Метод возвращает список подходящих по параметру поиска вещей
+     *
+     * @param text - поисковый запрос
+     * @param from - с какой вещи начать
+     * @param size - количество получаемых вещей
+     * @return - возвращает список вещей
+     */
     @Override
-    public List<ItemDto> search(String text) {
+    public List<ItemDto> search(String text, int from, int size) {
+        FromSizeValidator.checkFromSize(from, size);
         if (text.isBlank()) {
             return Collections.emptyList();
         }
-        List<ItemDto> foundItems = itemRepository.search(text).stream()
+        List<ItemDto> foundItems = itemRepository.search(text, PageRequest.of(from / size, size)).stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
         log.info("По запросу '{}' было найдено {} вещей", text, foundItems.size());
         return foundItems;
     }
 
-    // Метод добавляет комментарий к вещи по её id
+    /**
+     * Метод добавляет комментарий к вещи по её id
+     *
+     * @param commentDto - объект комментария
+     * @param authorId   - id автора
+     * @param itemId     - id вещи
+     * @return - возвращает созданный объект Comment (в виде CommentDto)
+     */
     @Override
     public CommentDto postComment(CommentDto commentDto, Long authorId, Long itemId) {
         User user = userRepository.findById(authorId).orElseThrow(() -> new UserNotFoundException(authorId));
@@ -130,7 +177,11 @@ public class ItemServiceImpl implements ItemService {
         return CommentMapper.toCommentDto(comment);
     }
 
-    // Метод проверяет, существует ли пользователь с таким id
+    /**
+     * Метод проверяет, существует ли пользователь с таким id
+     *
+     * @param ownerId - id пользователя
+     */
     private void checkIfOwnerExists(Long ownerId) {
         if (!userRepository.existsById(ownerId)) {
             throw new UserNotFoundException(ownerId);
