@@ -95,10 +95,11 @@ public class ItemServiceImpl implements ItemService {
         List<Item> foundItems = itemRepository.findAllByOwnerOrderByIdAsc(ownerId, PageRequest.of(from / size, size));
         log.info("Было найдено {} вещей, принадлежащих пользователю с id={}", foundItems.size(), ownerId);
         List<ItemWithBookingDto> foundItemsWithBookingDto = new ArrayList<>();
+        LocalDateTime date = LocalDateTime.now();
         for (Item item : foundItems) {
             foundItemsWithBookingDto.add(ItemMapper.toItemWithBookingDto(item,
-                    BookingMapper.toBookingDto(bookingRepository.findFirst1ByItemIdAndStartIsBeforeAndStatusIsNotOrderByEndDesc(item.getId(), LocalDateTime.now(), Status.REJECTED).orElse(null)),
-                    BookingMapper.toBookingDto(bookingRepository.findFirst1ByItemIdAndStartIsAfterAndStatusIsNotOrderByStartAsc(item.getId(), LocalDateTime.now(), Status.REJECTED).orElse(null)),
+                    BookingMapper.toBookingDto(bookingRepository.findFirst1ByItemIdAndStartIsBeforeAndStatusIsNotOrderByEndDesc(item.getId(), date, Status.REJECTED).orElse(null)),
+                    BookingMapper.toBookingDto(bookingRepository.findFirst1ByItemIdAndStartIsAfterAndStatusIsNotOrderByStartAsc(item.getId(), date, Status.REJECTED).orElse(null)),
                     commentRepository.findAllByItemId(item.getId()).stream()
                             .map(CommentMapper::toCommentDto)
                             .collect(Collectors.toList())));
@@ -122,9 +123,10 @@ public class ItemServiceImpl implements ItemService {
                             .map(CommentMapper::toCommentDto)
                             .collect(Collectors.toList()));
         } else {
+            LocalDateTime date = LocalDateTime.now();
             return ItemMapper.toItemWithBookingDto(item,
-                    BookingMapper.toBookingDto(bookingRepository.findFirst1ByItemIdAndStartIsBeforeAndStatusIsNotOrderByEndDesc(item.getId(), LocalDateTime.now(), Status.REJECTED).orElse(null)),
-                    BookingMapper.toBookingDto(bookingRepository.findFirst1ByItemIdAndStartIsAfterAndStatusIsNotOrderByStartAsc(item.getId(), LocalDateTime.now(), Status.REJECTED).orElse(null)),
+                    BookingMapper.toBookingDto(bookingRepository.findFirst1ByItemIdAndStartIsBeforeAndStatusIsNotOrderByEndDesc(item.getId(), date, Status.REJECTED).orElse(null)),
+                    BookingMapper.toBookingDto(bookingRepository.findFirst1ByItemIdAndStartIsAfterAndStatusIsNotOrderByStartAsc(item.getId(), date, Status.REJECTED).orElse(null)),
                     commentRepository.findAllByItemId(item.getId()).stream()
                             .map(CommentMapper::toCommentDto)
                             .collect(Collectors.toList()));
